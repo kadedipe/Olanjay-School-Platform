@@ -17,6 +17,7 @@ RUN apk add --no-cache openssl && addgroup --system --gid 1001 nodejs && adduser
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/lib/security.ts ./src/lib/security.ts
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
