@@ -36,6 +36,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.userId = user.id!;
         token.role = user.role;
         token.tokenVersion = (user as typeof user & { tokenVersion: number }).tokenVersion;
+      } else if (token.userId) {
+        const account = await prisma.user.findUnique({ where: { id: token.userId as string }, select: { status: true, tokenVersion: true } });
+        if (!account || account.status !== "ACTIVE" || account.tokenVersion !== token.tokenVersion) return null;
       }
       return token;
     },
