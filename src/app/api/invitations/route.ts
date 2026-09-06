@@ -13,6 +13,12 @@ const invitationSchema = z.object({
   role: z.enum([Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.GUARDIAN]),
 });
 
+function getPublicOrigin(request: Request) {
+  const configuredUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
+  if (configuredUrl) return new URL(configuredUrl).origin;
+  return new URL(request.url).origin;
+}
+
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
@@ -33,8 +39,7 @@ export async function POST(request: Request) {
     return created;
   });
 
-  const origin = new URL(request.url).origin;
-  const acceptUrl = `${origin}/accept-invitation?token=${encodeURIComponent(token)}`;
+  const acceptUrl = `${getPublicOrigin(request)}/accept-invitation?token=${encodeURIComponent(token)}`;
   const delivery = await sendInvitationEmail({ to: invitation.email, firstName: invitation.firstName, acceptUrl, expiresAt });
   return NextResponse.json({ invitationId: invitation.id, expiresAt, delivery, acceptUrl: delivery.delivered ? undefined : acceptUrl }, { status: 201 });
 }
