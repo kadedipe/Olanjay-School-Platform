@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { requestJson } from "@/lib/client-api";
 
 type Account = { id: string; firstName: string; lastName: string; email: string };
 type StudentRecord = { id: string; admissionNumber: string; dateOfBirth: string; address: string; status: "ACTIVE" | "SUSPENDED" | "ARCHIVED" };
@@ -13,12 +14,12 @@ export function StudentForm({ accounts = [], student }: { accounts?: Account[]; 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPending(true); setError("");
     const data = Object.fromEntries(new FormData(event.currentTarget));
-    const response = await fetch(student ? `/api/students/${student.id}` : "/api/students", {
-      method: student ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
-    });
-    const body = await response.json(); setPending(false);
-    if (!response.ok) return setError(body.error ?? "Student record could not be saved.");
-    router.push("/dashboard/students"); router.refresh();
+    try {
+      await requestJson(student ? `/api/students/${student.id}` : "/api/students", { method: student ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      router.push("/dashboard/students"); router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Student record could not be saved.");
+    } finally { setPending(false); }
   }
   return <form className="crudForm panel" onSubmit={submit}>
     {!student && <label>Student account<select name="userId" required defaultValue=""><option value="" disabled>Select an invited student</option>{accounts.map((account) => <option value={account.id} key={account.id}>{account.firstName} {account.lastName} — {account.email}</option>)}</select></label>}

@@ -12,10 +12,12 @@ export function LoginForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPending(true); setError("");
     const form = new FormData(event.currentTarget);
-    const result = await signIn("credentials", { email: form.get("email"), password: form.get("password"), redirect: false });
-    setPending(false);
-    if (result?.error) return setError("Email or password is incorrect, or the account is temporarily locked.");
-    router.push("/dashboard"); router.refresh();
+    try {
+      const result = await signIn("credentials", { email: form.get("email"), password: form.get("password"), redirect: false });
+      if (result?.error) return setError("Email or password is incorrect, or the account is temporarily locked.");
+      router.push("/dashboard"); router.refresh();
+    } catch { setError("The server could not be reached. Check your connection and try again."); }
+    finally { setPending(false); }
   }
 
   return <form className="authForm" onSubmit={submit}>

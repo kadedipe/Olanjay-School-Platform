@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { requestJson } from "@/lib/client-api";
 
 export function AcceptInvitationForm({ token }: { token: string }) {
   const router = useRouter();
@@ -11,10 +12,11 @@ export function AcceptInvitationForm({ token }: { token: string }) {
     event.preventDefault(); setPending(true); setMessage("");
     const data = new FormData(event.currentTarget);
     if (data.get("password") !== data.get("confirmPassword")) { setPending(false); return setMessage("Passwords do not match."); }
-    const response = await fetch("/api/invitations/accept", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, password: data.get("password") }) });
-    const body = await response.json(); setPending(false);
-    if (!response.ok) return setMessage(body.error ?? "Unable to accept invitation.");
-    router.push("/login?accepted=1");
+    try {
+      await requestJson("/api/invitations/accept", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, password: data.get("password") }) });
+      router.push("/login?accepted=1");
+    } catch (cause) { setMessage(cause instanceof Error ? cause.message : "Unable to accept invitation."); }
+    finally { setPending(false); }
   }
   return <form className="authForm" onSubmit={submit}>
     <label>Create password<input name="password" type="password" minLength={12} autoComplete="new-password" required /></label>

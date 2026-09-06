@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { requestJson } from "@/lib/client-api";
 
 type CourseRecord = { id: string; code: string; name: string; description: string; qualification: string; durationMonths: number; isActive: boolean };
 
@@ -13,12 +14,12 @@ export function CourseForm({ course }: { course?: CourseRecord }) {
     event.preventDefault(); setPending(true); setError("");
     const formData = new FormData(event.currentTarget);
     const data = { ...Object.fromEntries(formData), isActive: formData.get("isActive") === "on" };
-    const response = await fetch(course ? `/api/courses/${course.id}` : "/api/courses", {
-      method: course ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
-    });
-    const body = await response.json(); setPending(false);
-    if (!response.ok) return setError(body.error ?? "Course could not be saved.");
-    router.push("/dashboard/courses"); router.refresh();
+    try {
+      await requestJson(course ? `/api/courses/${course.id}` : "/api/courses", { method: course ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      router.push("/dashboard/courses"); router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Course could not be saved.");
+    } finally { setPending(false); }
   }
   return <form className="crudForm panel" onSubmit={submit}>
     <div className="formGrid"><label>Course code<input name="code" required maxLength={30} defaultValue={course?.code}/></label><label>Course name<input name="name" required maxLength={120} defaultValue={course?.name}/></label></div>
