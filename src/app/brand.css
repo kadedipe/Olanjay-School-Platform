@@ -1,0 +1,14 @@
+.brandLogo {
+  width: 58px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: #fff;
+  object-fit: contain;
+}
+
+.authLogo {
+  width: 112px;
+  height: 76px;
+  border-radius: 12px;
+}
