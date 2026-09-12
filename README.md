@@ -10,6 +10,7 @@ A production-oriented school information system for Olanjay Technical School / N
 - Attendance and timetables
 - Assessments, results, grades, and publication workflow
 - Fee invoices, payments, balances, and reconciliation
+- Printable term report cards, fee invoices, and payment receipts
 - Audit trail and operational dashboard
 
 ## Architecture
@@ -82,6 +83,14 @@ Do not expose PostgreSQL publicly. The application and database communicate over
 3. Alert on repeated `/api/health` failures, container restarts, HTTP 5xx growth, authentication lockouts, and overdue-invoice growth.
 4. Rotate `AUTH_SECRET`, email-provider credentials, and bootstrap credentials through Railway variables; never commit them.
 5. Export audit events before the organization’s retention window and investigate unexpected administrator mutations.
+
+## Reports and documents
+
+- `/dashboard/reports` generates term report cards from published results and recorded attendance.
+- Course scores are normalized by assessment maximums and combined using configured assessment weights.
+- Teachers can report only on learners and courses assigned to them; students and guardians remain restricted to their own or linked records.
+- Invoice numbers and payment references in `/dashboard/finance` open print-ready documents that can also be saved as PDF through the browser.
+- Every report, invoice, and receipt route repeats authorization on the server, so knowing a document URL does not grant access.
 
 ## Security baseline
 
