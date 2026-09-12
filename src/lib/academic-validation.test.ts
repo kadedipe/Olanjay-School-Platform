@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { academicYearInputSchema, assessmentInputSchema, attendanceBulkSchema, courseInputSchema, enrollmentInputSchema, resultBulkSchema, studentInputSchema, studentUpdateSchema, teacherAssignmentInputSchema, termInputSchema, timetableInputSchema } from "./academic-validation";
+import { academicYearInputSchema, assessmentInputSchema, attendanceBulkSchema, courseInputSchema, enrollmentInputSchema, invoiceInputSchema, paymentInputSchema, resultBulkSchema, studentInputSchema, studentUpdateSchema, teacherAssignmentInputSchema, termInputSchema, timetableInputSchema } from "./academic-validation";
 
 describe("academic CRUD validation", () => {
   it("normalizes admission numbers and course codes", () => {
@@ -40,4 +40,5 @@ describe("academic CRUD validation", () => {
   });
 
   it("validates assessments and result batches",()=>{expect(assessmentInputSchema.safeParse({courseId:"c1",termId:"t1",title:"Final exam",type:"EXAM",maximumScore:100,weight:60}).success).toBe(true);expect(resultBulkSchema.safeParse({assessmentId:"a1",publish:true,records:[{studentId:"s1",score:-1}]}).success).toBe(false);});
+  it("validates invoices and payments",()=>{expect(invoiceInputSchema.safeParse({studentId:"s1",termId:"t1",amount:500000,currency:"ugx",dueAt:"2026-10-01"}).success).toBe(true);expect(paymentInputSchema.safeParse({invoiceId:"i1",reference:"",amount:0,provider:"Cash",paidAt:"2026-09-12"}).success).toBe(false);});
 });

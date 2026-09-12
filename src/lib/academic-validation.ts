@@ -60,5 +60,9 @@ export const attendanceBulkSchema = z.object({
 export const assessmentInputSchema = z.object({ courseId:z.string().trim().min(1),termId:z.string().trim().min(1),title:z.string().trim().min(2).max(120),type:z.string().trim().min(2).max(50),maximumScore:z.coerce.number().positive().max(1000),weight:z.coerce.number().positive().max(100),dueAt:z.union([z.literal(""),z.iso.datetime({local:true})]).optional().default("") });
 export const resultBulkSchema = z.object({ assessmentId:z.string().trim().min(1),publish:z.boolean().default(false),records:z.array(z.object({studentId:z.string().trim().min(1),score:z.coerce.number().min(0),feedback:z.string().trim().max(500).optional().default("")})).min(1).max(500) });
 
+export const invoiceInputSchema = z.object({ studentId:z.string().trim().min(1),termId:z.string().trim().min(1),amount:z.coerce.number().positive().max(1_000_000_000),currency:z.string().trim().length(3).transform(value=>value.toUpperCase()).default("UGX"),dueAt:z.iso.date() });
+export const paymentInputSchema = z.object({ invoiceId:z.string().trim().min(1),reference:z.string().trim().min(2).max(80).transform(value=>value.toUpperCase()),amount:z.coerce.number().positive().max(1_000_000_000),provider:z.string().trim().min(2).max(80),paidAt:z.iso.date() });
+export const invoiceStatusSchema = z.object({status:z.enum(["ISSUED","VOID"])});
+
 export type StudentInput = z.infer<typeof studentInputSchema>;
 export type CourseInput = z.infer<typeof courseInputSchema>;
