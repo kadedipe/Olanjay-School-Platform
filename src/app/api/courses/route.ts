@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const access = await authorizeApi([Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.GUARDIAN]);
   if (access.response) return access.response;
-  const courses = await prisma.course.findMany({ include: { _count: { select: { enrollments: true, teachers: true } } }, orderBy: { code: "asc" } });
+  const courses = await prisma.course.findMany({ where: access.user!.role === Role.ADMIN ? {} : { isActive: true }, include: { _count: { select: { enrollments: true, teachers: true } } }, orderBy: { code: "asc" } });
   return NextResponse.json({ courses });
 }
 

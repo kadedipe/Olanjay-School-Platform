@@ -22,5 +22,28 @@ export const courseInputSchema = z.object({
   isActive: z.boolean().optional().default(true),
 });
 
+export const academicYearInputSchema = z.object({
+  name: z.string().trim().min(3).max(40),
+  startsAt: z.iso.date(),
+  endsAt: z.iso.date(),
+  isCurrent: z.boolean().optional().default(false),
+}).refine((value) => value.endsAt > value.startsAt, { message: "End date must be after start date", path: ["endsAt"] });
+
+export const enrollmentInputSchema = z.object({
+  studentId: z.string().trim().min(1),
+  courseId: z.string().trim().min(1),
+  academicYearId: z.string().trim().min(1),
+  yearLevel: z.coerce.number().int().min(1).max(10),
+  status: z.enum(["APPLIED", "ENROLLED", "DEFERRED", "WITHDRAWN", "GRADUATED"]).default("ENROLLED"),
+});
+
+export const enrollmentUpdateSchema = enrollmentInputSchema.pick({ yearLevel: true, status: true });
+
+export const teacherAssignmentInputSchema = z.object({
+  userId: z.string().trim().min(1),
+  courseId: z.string().trim().min(1),
+  employeeNumber: z.string().trim().max(40).transform((value) => value.toUpperCase()).optional().default("").refine((value) => !value || value.length >= 2, "Employee number must contain at least 2 characters"),
+});
+
 export type StudentInput = z.infer<typeof studentInputSchema>;
 export type CourseInput = z.infer<typeof courseInputSchema>;
