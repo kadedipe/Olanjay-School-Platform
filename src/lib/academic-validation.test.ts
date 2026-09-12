@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { academicYearInputSchema, attendanceBulkSchema, courseInputSchema, enrollmentInputSchema, studentInputSchema, studentUpdateSchema, teacherAssignmentInputSchema, termInputSchema, timetableInputSchema } from "./academic-validation";
+import { academicYearInputSchema, assessmentInputSchema, attendanceBulkSchema, courseInputSchema, enrollmentInputSchema, resultBulkSchema, studentInputSchema, studentUpdateSchema, teacherAssignmentInputSchema, termInputSchema, timetableInputSchema } from "./academic-validation";
 
 describe("academic CRUD validation", () => {
   it("normalizes admission numbers and course codes", () => {
@@ -38,4 +38,6 @@ describe("academic CRUD validation", () => {
     expect(termInputSchema.safeParse({ name: "Term 1", academicYearId: "y1", startsAt: "2026-09-01", endsAt: "2026-12-15" }).success).toBe(true);
     expect(attendanceBulkSchema.safeParse({ timetableEntryId: "t1", termId: "term1", attendanceDate: "2026-09-07", records: [] }).success).toBe(false);
   });
+
+  it("validates assessments and result batches",()=>{expect(assessmentInputSchema.safeParse({courseId:"c1",termId:"t1",title:"Final exam",type:"EXAM",maximumScore:100,weight:60}).success).toBe(true);expect(resultBulkSchema.safeParse({assessmentId:"a1",publish:true,records:[{studentId:"s1",score:-1}]}).success).toBe(false);});
 });

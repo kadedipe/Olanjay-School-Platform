@@ -1,0 +1,1 @@
+import{describe,expect,it}from"vitest";import{letterGrade}from"./grading";describe("grading",()=>{it("maps score percentages to letter grades",()=>{expect(letterGrade(80,100)).toBe("A");expect(letterGrade(35,50)).toBe("B");expect(letterGrade(49,100)).toBe("F");});});

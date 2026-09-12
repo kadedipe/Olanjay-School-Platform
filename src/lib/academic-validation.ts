@@ -57,5 +57,8 @@ export const attendanceBulkSchema = z.object({
   records: z.array(z.object({ studentId: z.string().trim().min(1), status: z.enum(["PRESENT", "ABSENT", "LATE", "EXCUSED"]), note: z.string().trim().max(300).optional().default("") })).min(1).max(500),
 });
 
+export const assessmentInputSchema = z.object({ courseId:z.string().trim().min(1),termId:z.string().trim().min(1),title:z.string().trim().min(2).max(120),type:z.string().trim().min(2).max(50),maximumScore:z.coerce.number().positive().max(1000),weight:z.coerce.number().positive().max(100),dueAt:z.union([z.literal(""),z.iso.datetime({local:true})]).optional().default("") });
+export const resultBulkSchema = z.object({ assessmentId:z.string().trim().min(1),publish:z.boolean().default(false),records:z.array(z.object({studentId:z.string().trim().min(1),score:z.coerce.number().min(0),feedback:z.string().trim().max(500).optional().default("")})).min(1).max(500) });
+
 export type StudentInput = z.infer<typeof studentInputSchema>;
 export type CourseInput = z.infer<typeof courseInputSchema>;
