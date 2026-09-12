@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export function GET() {
-  return NextResponse.json({ status: "ok", service: "olanjay-school-platform", timestamp: new Date().toISOString() });
+export async function GET() {
+  try { await prisma.$queryRaw`SELECT 1`; return NextResponse.json({ status: "ok", database: "ready", service: "olanjay-school-platform", timestamp: new Date().toISOString() }); }
+  catch { return NextResponse.json({ status: "degraded", database: "unavailable", service: "olanjay-school-platform", timestamp: new Date().toISOString() }, { status: 503 }); }
 }

@@ -66,6 +66,23 @@ Do not expose PostgreSQL publicly. The application and database communicate over
 5. Finance: fee structures, invoices, provider adapters, receipts and reconciliation.
 6. Production hardening: audit UI, rate limiting, observability, backups, CI and E2E tests.
 
+## Production hardening
+
+- `/api/health` returns success only when both the application and PostgreSQL are ready.
+- API traffic is rate limited by forwarded client IP, with a stricter authentication window and standard `RateLimit-*` response headers.
+- Browser responses include CSP, HSTS, clickjacking, MIME-sniffing, referrer, permissions, and cross-origin isolation controls.
+- Administrators can review live operational indicators and the latest 50 audit events at `/dashboard/operations`; `/api/audit-events` supports restricted server-side filtering.
+- GitHub Actions runs migrations against PostgreSQL, unit tests, strict type checking, a production build, and live health/login smoke tests before changes are accepted.
+- Dependabot monitors npm packages and GitHub Actions. Railway deployment should remain configured to wait for CI.
+
+### Backup and incident checklist
+
+1. Enable scheduled PostgreSQL backups in Railway and periodically test restoration into a non-production database.
+2. Retain the application service and PostgreSQL in the same private Railway network; do not publish the database port.
+3. Alert on repeated `/api/health` failures, container restarts, HTTP 5xx growth, authentication lockouts, and overdue-invoice growth.
+4. Rotate `AUTH_SECRET`, email-provider credentials, and bootstrap credentials through Railway variables; never commit them.
+5. Export audit events before the organization’s retention window and investigate unexpected administrator mutations.
+
 ## Security baseline
 
 Never commit `.env`. Passwords must be hashed with bcrypt or Argon2. Every mutation must verify the server-side session and role; hiding UI controls is not authorization. Payment callbacks must verify provider signatures and be idempotent.

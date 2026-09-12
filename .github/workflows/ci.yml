@@ -1,0 +1,50 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: olanjay_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d olanjay_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/olanjay_test?schema=public
+      AUTH_SECRET: ci-only-secret-with-at-least-thirty-two-characters
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:deploy
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Application smoke test
+        run: |
+          npm run start > /tmp/olanjay-server.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://localhost:3000/api/health | grep -q '"database":"ready"'; then
+              curl --fail --silent http://localhost:3000/login > /dev/null
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/olanjay-server.log
+          exit 1
