@@ -1,0 +1,9 @@
+import { Role } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { termInputSchema } from "@/lib/academic-validation";
+import { authorizeApi } from "@/lib/api-authorization";
+import { mutationError } from "@/lib/api-errors";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(){const access=await authorizeApi([Role.ADMIN,Role.TEACHER,Role.STUDENT,Role.GUARDIAN]);if(access.response)return access.response;return NextResponse.json({terms:await prisma.term.findMany({include:{academicYear:true},orderBy:{startsAt:"desc"}})});}
+export async function POST(request:Request){const access=await authorizeApi([Role.ADMIN]);if(access.response)return access.response;const parsed=termInputSchema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:parsed.error.issues[0]?.message??"Invalid term"},{status:400});const year=await prisma.academicYear.findUnique({where:{id:parsed.data.academicYearId}});if(!year)return NextResponse.json({error:"Academic year not found"},{status:404});const startsAt=new Date(`${parsed.data.startsAt}T00:00:00.000Z`),endsAt=new Date(`${parsed.data.endsAt}T23:59:59.999Z`);if(startsAt<year.startsAt||endsAt>year.endsAt)return NextResponse.json({error:"Term dates must fall within the academic year"},{status:400});try{const term=await prisma.$transaction(async(tx)=>{const created=await tx.term.create({data:{name:parsed.data.name,academicYearId:parsed.data.academicYearId,startsAt,endsAt}});await tx.auditEvent.create({data:{actorId:access.user!.id,action:"term.created",entityType:"Term",entityId:created.id,metadata:{name:created.name,academicYearId:created.academicYearId}}});return created;});return NextResponse.json({term},{status:201});}catch(error){return mutationError(error,"That term already exists in this academic year");}}

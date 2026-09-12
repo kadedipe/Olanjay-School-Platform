@@ -3,6 +3,7 @@ import "./styles.css";
 import "./brand.css";
 import "./crud.css";
 import "./assignments.css";
+import "./attendance.css";
 
 export const metadata: Metadata = {
   title: "Olanjay School Platform",

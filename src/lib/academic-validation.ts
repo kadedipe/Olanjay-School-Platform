@@ -45,5 +45,17 @@ export const teacherAssignmentInputSchema = z.object({
   employeeNumber: z.string().trim().max(40).transform((value) => value.toUpperCase()).optional().default("").refine((value) => !value || value.length >= 2, "Employee number must contain at least 2 characters"),
 });
 
+const schoolTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use 24-hour time in HH:MM format");
+const timetableBaseSchema = z.object({ weekday: z.coerce.number().int().min(1).max(7), startsAt: schoolTime, endsAt: schoolTime, room: z.string().trim().min(1).max(80) }).refine((value) => value.endsAt > value.startsAt, { message: "End time must be after start time", path: ["endsAt"] });
+export const timetableInputSchema = z.intersection(timetableBaseSchema, z.object({ courseId: z.string().trim().min(1), teacherId: z.string().trim().min(1) }));
+export const timetableUpdateSchema = timetableBaseSchema;
+
+export const termInputSchema = z.object({ name: z.string().trim().min(2).max(40), academicYearId: z.string().trim().min(1), startsAt: z.iso.date(), endsAt: z.iso.date() }).refine((value) => value.endsAt > value.startsAt, { message: "End date must be after start date", path: ["endsAt"] });
+
+export const attendanceBulkSchema = z.object({
+  timetableEntryId: z.string().trim().min(1), termId: z.string().trim().min(1), attendanceDate: z.iso.date(),
+  records: z.array(z.object({ studentId: z.string().trim().min(1), status: z.enum(["PRESENT", "ABSENT", "LATE", "EXCUSED"]), note: z.string().trim().max(300).optional().default("") })).min(1).max(500),
+});
+
 export type StudentInput = z.infer<typeof studentInputSchema>;
 export type CourseInput = z.infer<typeof courseInputSchema>;
