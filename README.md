@@ -11,6 +11,7 @@ A production-oriented school information system for Olanjay Technical School / N
 - Assessments, results, grades, and publication workflow
 - Fee invoices, payments, balances, and reconciliation
 - Printable term report cards, fee invoices, and payment receipts
+- Managed student–guardian relationships and self-service account security
 - Audit trail and operational dashboard
 
 ## Architecture
@@ -91,6 +92,15 @@ Do not expose PostgreSQL publicly. The application and database communicate over
 - Teachers can report only on learners and courses assigned to them; students and guardians remain restricted to their own or linked records.
 - Invoice numbers and payment references in `/dashboard/finance` open print-ready documents that can also be saved as PDF through the browser.
 - Every report, invoice, and receipt route repeats authorization on the server, so knowing a document URL does not grant access.
+
+## Family and account management
+
+- Administrators link active guardian accounts to students at `/dashboard/family`, record the relationship, and designate one primary contact.
+- Saving a new primary contact atomically removes the primary designation from earlier contacts for that student.
+- Students and guardians can review only relationships connected to their own accounts; teachers do not receive family-management access.
+- All users can update their name and phone number at `/dashboard/account` without changing their immutable sign-in email or institutional identifier.
+- Password changes require the current password and the strong-password policy, then increment the account token version to revoke every active session.
+- Guardian-link, profile, and password mutations are written to the audit trail.
 
 ## Security baseline
 
