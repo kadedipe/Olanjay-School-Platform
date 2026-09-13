@@ -12,6 +12,7 @@ A production-oriented school information system for Olanjay Technical School / N
 - Fee invoices, payments, balances, and reconciliation
 - Printable term report cards, fee invoices, and payment receipts
 - Managed student–guardian relationships and self-service account security
+- Role- and course-targeted announcements with personal notification inboxes
 - Audit trail and operational dashboard
 
 ## Architecture
@@ -101,6 +102,15 @@ Do not expose PostgreSQL publicly. The application and database communicate over
 - All users can update their name and phone number at `/dashboard/account` without changing their immutable sign-in email or institutional identifier.
 - Password changes require the current password and the strong-password policy, then increment the account token version to revoke every active session.
 - Guardian-link, profile, and password mutations are written to the audit trail.
+
+## Announcements and notifications
+
+- Administrators can publish school-wide or course-specific announcements to any combination of account roles.
+- Teachers can publish only to students and guardians attached to their assigned courses.
+- Each recipient receives a persistent notification with individual read status; unread totals appear in dashboard navigation.
+- Messages support normal, important, and urgent priorities plus an optional expiration date.
+- Optional Resend delivery uses the existing `RESEND_API_KEY` and `EMAIL_FROM` variables. Email is capped at 50 recipients per synchronous publish request; every recipient still receives the in-app notification.
+- Publishing and removal are audited, and removing an announcement cascades safely to its notification copies.
 
 ## Security baseline
 

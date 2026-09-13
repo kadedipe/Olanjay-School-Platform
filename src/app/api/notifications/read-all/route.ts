@@ -1,0 +1,2 @@
+import{Role}from"@prisma/client";import{NextResponse}from"next/server";import{authorizeApi}from"@/lib/api-authorization";import{prisma}from"@/lib/prisma";
+export async function POST(){const access=await authorizeApi([Role.ADMIN,Role.TEACHER,Role.STUDENT,Role.GUARDIAN]);if(access.response)return access.response;const result=await prisma.notification.updateMany({where:{userId:access.user!.id,readAt:null},data:{readAt:new Date()}});return NextResponse.json({updated:result.count});}

@@ -1,0 +1,3 @@
+import{Role}from"@prisma/client";import{z}from"zod";
+export const announcementSchema=z.object({title:z.string().trim().min(3).max(140),body:z.string().trim().min(5).max(5000),priority:z.enum(["NORMAL","IMPORTANT","URGENT"]).default("NORMAL"),audienceRoles:z.array(z.enum([Role.ADMIN,Role.TEACHER,Role.STUDENT,Role.GUARDIAN])).min(1).max(4).transform(roles=>[...new Set(roles)]),courseId:z.string().trim().optional().default(""),expiresAt:z.union([z.literal(""),z.iso.datetime({local:true})]).optional().default(""),sendEmail:z.boolean().optional().default(false)});
+export function canPublishToCourse(role:Role,courseId:string){return role===Role.ADMIN||role===Role.TEACHER&&Boolean(courseId);}

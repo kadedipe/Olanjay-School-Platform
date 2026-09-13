@@ -52,26 +52,34 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum AnnouncementPriority {
+  NORMAL
+  IMPORTANT
+  URGENT
+}
+
 model User {
-  id                  String       @id @default(cuid())
-  email               String       @unique
-  passwordHash        String?
-  firstName           String
-  lastName            String
-  phone               String?
-  role                Role
-  status              UserStatus   @default(INVITED)
-  student             Student?
-  teacher             Teacher?
-  guardian            Guardian?
-  auditEvents         AuditEvent[]
-  invitationsSent     Invitation[] @relation("InvitationCreator")
-  lastLoginAt         DateTime?
-  tokenVersion        Int          @default(0)
-  failedLoginAttempts Int          @default(0)
-  lockedUntil         DateTime?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  id                   String         @id @default(cuid())
+  email                String         @unique
+  passwordHash         String?
+  firstName            String
+  lastName             String
+  phone                String?
+  role                 Role
+  status               UserStatus     @default(INVITED)
+  student              Student?
+  teacher              Teacher?
+  guardian             Guardian?
+  auditEvents          AuditEvent[]
+  invitationsSent      Invitation[]   @relation("InvitationCreator")
+  announcementsCreated Announcement[] @relation("AnnouncementCreator")
+  notifications        Notification[]
+  lastLoginAt          DateTime?
+  tokenVersion         Int            @default(0)
+  failedLoginAttempts  Int            @default(0)
+  lockedUntil          DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   @@index([role, status])
 }
@@ -180,6 +188,7 @@ model Course {
   assessments    Assessment[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+  announcements  Announcement[]
 }
 
 model CourseTeacher {
@@ -295,6 +304,41 @@ model Payment {
   paidAt    DateTime?
   invoice   Invoice       @relation(fields: [invoiceId], references: [id])
   createdAt DateTime      @default(now())
+}
+
+model Announcement {
+  id            String               @id @default(cuid())
+  title         String
+  body          String
+  priority      AnnouncementPriority @default(NORMAL)
+  audienceRoles Role[]
+  courseId      String?
+  createdById   String
+  publishedAt   DateTime             @default(now())
+  expiresAt     DateTime?
+  course        Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  createdBy     User                 @relation("AnnouncementCreator", fields: [createdById], references: [id])
+  notifications Notification[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([publishedAt, expiresAt])
+  @@index([courseId, publishedAt])
+  @@index([createdById, publishedAt])
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  announcementId String
+  userId         String
+  readAt         DateTime?
+  emailedAt      DateTime?
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+  @@index([userId, readAt, createdAt])
 }
 
 model AuditEvent {

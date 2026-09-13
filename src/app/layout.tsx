@@ -8,6 +8,7 @@ import "./finance.css";
 import "./operations.css";
 import "./documents.css";
 import "./account.css";
+import "./communications.css";
 
 export const metadata: Metadata = {
   title: "Olanjay School Platform",
