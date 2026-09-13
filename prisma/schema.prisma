@@ -59,29 +59,42 @@ enum AnnouncementPriority {
 }
 
 model User {
-  id                   String         @id @default(cuid())
-  email                String         @unique
+  id                   String               @id @default(cuid())
+  email                String               @unique
   passwordHash         String?
   firstName            String
   lastName             String
   phone                String?
   role                 Role
-  status               UserStatus     @default(INVITED)
+  status               UserStatus           @default(INVITED)
   student              Student?
   teacher              Teacher?
   guardian             Guardian?
   auditEvents          AuditEvent[]
-  invitationsSent      Invitation[]   @relation("InvitationCreator")
-  announcementsCreated Announcement[] @relation("AnnouncementCreator")
+  invitationsSent      Invitation[]         @relation("InvitationCreator")
+  announcementsCreated Announcement[]       @relation("AnnouncementCreator")
   notifications        Notification[]
+  passwordResetTokens  PasswordResetToken[]
   lastLoginAt          DateTime?
-  tokenVersion         Int            @default(0)
-  failedLoginAttempts  Int            @default(0)
+  tokenVersion         Int                  @default(0)
+  failedLoginAttempts  Int                  @default(0)
   lockedUntil          DateTime?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([role, status])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
 }
 
 model Invitation {

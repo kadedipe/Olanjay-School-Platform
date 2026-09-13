@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 
 export function LoginForm() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export function LoginForm() {
 
   return <form className="authForm" onSubmit={submit}>
     <label>Email address<input name="email" type="email" autoComplete="email" required /></label>
-    <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
+    <label>Password<input name="password" type="password" autoComplete="current-password" required /></label><p className="authLink"><Link href="/forgot-password">Forgot password?</Link></p>
     {error && <p className="formError" role="alert">{error}</p>}
     <button className="primary" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</button>
   </form>;

@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 
 export const INVITATION_TTL_MS = 48 * 60 * 60 * 1000;
+export const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 
 export function createOpaqueToken() {
   return randomBytes(32).toString("base64url");

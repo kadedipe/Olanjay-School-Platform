@@ -12,6 +12,7 @@ A production-oriented school information system for Olanjay Technical School / N
 - Fee invoices, payments, balances, and reconciliation
 - Printable term report cards, fee invoices, and payment receipts
 - Managed student–guardian relationships and self-service account security
+- One-time password recovery and administrator-managed account lifecycles
 - Role- and course-targeted announcements with personal notification inboxes
 - Audit trail and operational dashboard
 
@@ -46,7 +47,7 @@ Open `http://localhost:3000`.
 6. Generate a public domain for the application service and deploy. `railway.json` selects the Dockerfile, runs the committed Prisma migrations, starts the app, and checks `/api/health`.
 7. After the first successful administrator login, set `RUN_BOOTSTRAP_SEED=false` and remove `ADMIN_PASSWORD` from Railway.
 
-Optional invitation email delivery requires `RESEND_API_KEY` and a verified `EMAIL_FROM`. Without them, an administrator receives a one-time invitation URL to share securely.
+Optional invitation and password-recovery email delivery requires `RESEND_API_KEY` and a verified `EMAIL_FROM`. Without them, an administrator receives a one-time invitation URL to share securely; production password recovery requires email delivery to remain private.
 
 Do not expose PostgreSQL publicly. The application and database communicate over Railway's private network.
 
@@ -59,6 +60,8 @@ Do not expose PostgreSQL publicly. The application and database communicate over
 - Invitations expire after 48 hours, are single-use, and prior active invitations are revoked when replaced.
 - Administrator, teacher, student, and guardian routes reject cross-role access.
 - Invitation creation and acceptance generate audit events.
+- Password reset requests return the same response for known and unknown emails, expire after one hour, store only token hashes, and revoke every existing session after completion.
+- Administrators can suspend, restore, or archive accounts without disabling themselves or the final active administrator.
 
 ## Delivery roadmap
 
@@ -102,6 +105,14 @@ Do not expose PostgreSQL publicly. The application and database communicate over
 - All users can update their name and phone number at `/dashboard/account` without changing their immutable sign-in email or institutional identifier.
 - Password changes require the current password and the strong-password policy, then increment the account token version to revoke every active session.
 - Guardian-link, profile, and password mutations are written to the audit trail.
+
+## Password recovery and account lifecycle
+
+- Users request a reset at `/forgot-password`; production never exposes the raw reset token in an API response.
+- Reset links are single-use, expire after one hour, and supersede any earlier unused link for the account.
+- Completing a reset clears login lockouts and increments the session token version so all prior sessions stop working.
+- Administrators manage account status at `/dashboard/users`. Suspending or archiving an account revokes its sessions and invalidates outstanding reset links.
+- Invited users must accept their invitation before lifecycle controls can activate them, and the final active administrator is protected from suspension or archival.
 
 ## Announcements and notifications
 
